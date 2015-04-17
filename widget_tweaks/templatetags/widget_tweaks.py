@@ -2,6 +2,9 @@ import re
 from django.template import Library, Node, Variable, TemplateSyntaxError
 register = Library()
 
+from django_jinja import library
+import jinja2
+
 
 def silence_without_field(fn):
     def wrapped(field, attr):
@@ -34,7 +37,7 @@ def _process_field_attributes(field, attr, process):
     return field
 
 
-@register.filter("attr")
+@library.filter("attr")
 @silence_without_field
 def set_attr(field, attr):
 
@@ -44,7 +47,7 @@ def set_attr(field, attr):
     return _process_field_attributes(field, attr, process)
 
 
-@register.filter("add_error_attr")
+@library.filter("add_error_attr")
 @silence_without_field
 def add_error_attr(field, attr):
     if hasattr(field, 'errors') and field.errors:
@@ -52,7 +55,7 @@ def add_error_attr(field, attr):
     return field
 
 
-@register.filter("append_attr")
+@library.filter("append_attr")
 @silence_without_field
 def append_attr(field, attr):
     def process(widget, attrs, attribute, value):
@@ -65,13 +68,13 @@ def append_attr(field, attr):
     return _process_field_attributes(field, attr, process)
 
 
-@register.filter("add_class")
+@library.filter("add_class")
 @silence_without_field
 def add_class(field, css_class):
     return append_attr(field, 'class:' + css_class)
 
 
-@register.filter("add_error_class")
+@library.filter("add_error_class")
 @silence_without_field
 def add_error_class(field, css_class):
     if hasattr(field, 'errors') and field.errors:
@@ -79,13 +82,13 @@ def add_error_class(field, css_class):
     return field
 
 
-@register.filter("set_data")
+@library.filter("set_data")
 @silence_without_field
 def set_data(field, data):
     return set_attr(field, 'data-' + data)
 
 
-@register.filter(name='field_type')
+@library.filter(name='field_type')
 def field_type(field):
     """
     Template filter that returns field class name (in lower case).
@@ -97,7 +100,7 @@ def field_type(field):
     return ''
 
 
-@register.filter(name='widget_type')
+@library.filter(name='widget_type')
 def widget_type(field):
     """
     Template filter that returns field widget class name (in lower case).
@@ -125,7 +128,7 @@ ATTRIBUTE_RE = re.compile(r"""
     )
 """, re.VERBOSE | re.UNICODE)
 
-@register.tag
+@library.filter
 def render_field(parser, token):
     """
     Render a form field using given attribute-value pairs
